@@ -1,0 +1,15 @@
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build output
+bin/
+obj/
+
+# IDE files
+.vscode/
+
+# NuGet
+*.nupkg
