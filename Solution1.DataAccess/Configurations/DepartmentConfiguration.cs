@@ -1,0 +1,45 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+using Solution1.Entity.Entities;
+namespace Solution1.DataAccess.Configurations;
+
+public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
+{
+    public void Configure(EntityTypeBuilder<Department> builder)
+    {
+        builder
+            .ToTable("Departments");
+
+        builder
+            .HasKey(d => d.Id);
+
+        builder
+            .Property(d => d.Name)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder
+            .Property(d => d.Description)
+            .HasMaxLength(500);
+
+        builder
+            .Property(d => d.Location)
+            .HasMaxLength(200);
+
+        builder
+            .Property(d => d.Limit)
+            .IsRequired();
+
+        builder
+            .Property(d => d.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("GETDATE()");
+
+        builder
+            .HasMany(d => d.Employees)
+            .WithOne(e => e.Department)
+            .HasForeignKey(e => e.DepartmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

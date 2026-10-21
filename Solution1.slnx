@@ -6,5 +6,6 @@
     <Project Path="Solution1.Entity/Solution1.Entity.csproj" />
     <Project Path="Solution1.Presentation/Solution1.Presentation.csproj" />
   </Folder>
+  <Folder Name="/test/" />
   <Folder Name="/tests/" />
 </Solution>
