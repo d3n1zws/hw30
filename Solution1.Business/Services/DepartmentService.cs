@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 using Solution1.Business.Dtos.DepartmentDto;
 using AutoMapper;
+using Solution1.Business.Interfaces;
 
 namespace Solution1.Business.Services;
 

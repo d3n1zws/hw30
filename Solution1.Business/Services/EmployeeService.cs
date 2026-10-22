@@ -2,72 +2,73 @@
 using Solution1.DataAccess.Contexts;
 using Solution1.Entity.Entities;
 using Microsoft.EntityFrameworkCore;
+using Solution1.Business.Dtos.EmployeeDto;
+using AutoMapper;
+using Solution1.Business.Interfaces;
 
 namespace Solution1.Business.Services;
 
-public class EmployeeService
+public class EmployeeService : IEmployeeService
 {
     private readonly AppDbContext context;
-    public EmployeeService(AppDbContext _context)
+    private readonly IMapper mapper;
+    public EmployeeService(AppDbContext _context, IMapper _mapper)
     {
         context = _context;
+        mapper = _mapper;
     }
-    public async Task<List<Employee>> GetAllEmployeesAsync() =>
-        await context.Employees.Include(e => e.Department).ToListAsync();
-    public async Task<Employee> GetEmployeeByIdAsync(int id)
+    public async Task<List<EmployeeReturnDto>> GetAllEmployeesAsync()
     {
-        var employee = await context.Employees.Include(e => e.Department).FirstOrDefaultAsync(e => e.Id == id);
-        if (employee is null)
+        var employees = await context.Employees.Include(e => e.Department).ToListAsync();
+        return mapper.Map<List<EmployeeReturnDto>>(employees);
+    }
+    public async Task<EmployeeReturnDto> GetEmployeeByIdAsync(int id)
+    {
+        var employeeDto = await context.Employees.Select(e => mapper.Map<EmployeeReturnDto>(e)).Include(e => e.DepartmentDto).FirstOrDefaultAsync(e => e.Id == id);
+        if (employeeDto is null)
         {
             throw new KeyNotFoundException("Employee tapilmadi");
         }
-        return employee;
+        return employeeDto;
     }
-    public async Task CreateEmployeeAsync(Employee employee)
+    public async Task CreateEmployeeAsync(EmployeeCreateDto employeeDto)
     {
-        if (employee is null)
+        if (employeeDto is null)
         {
             throw new ArgumentException("Employee null gonderile bilmez");
         }
-        var existingEmployee = await context.Employees.AnyAsync(e => e.Email == employee.Email);
+        var existingEmployee = await context.Employees.AnyAsync(e => e.Email == employeeDto.Email);
         if (existingEmployee)
         {
             throw new InvalidOperationException("Employee email-i tekrarlanmamalidir");
         }
-        var departmentExists = await context.Departments.AnyAsync(d => d.Id == employee.DepartmentId);
+        var departmentExists = await context.Departments.AnyAsync(d => d.Id == employeeDto.DepartmentId);
         if (!departmentExists)
         {
             throw new KeyNotFoundException("Department tapilmadi");
         }
+        var employee = mapper.Map<Employee>(employeeDto);
         await context.Employees.AddAsync(employee);
         await context.SaveChangesAsync();
     }
-    public async Task UpdateEmployeeAsync(Employee employee)
+    public async Task UpdateEmployeeAsync(int id, EmployeeUpdateDto employeeDto)
     {
-        var existingEmployee = await GetEmployeeByIdAsync(employee.Id);
+        var existingEmployee = await context.Employees.FirstOrDefaultAsync(e => e.Id == id);
         if (existingEmployee is null)
         {
             throw new KeyNotFoundException("Employee tapilmadi");
         }
-        var duplicateEmail = await context.Employees.AnyAsync(e => e.Email == employee.Email && e.Id != employee.Id);
+        var duplicateEmail = await context.Employees.AnyAsync(e => e.Email == employeeDto.Email && e.Id != id);
         if (duplicateEmail)
         {
             throw new InvalidOperationException("Employee email-i tekrarlanmamalidir");
         }
-        var departmentExists = await context.Departments.AnyAsync(d => d.Id == employee.DepartmentId);
+        var departmentExists = await context.Departments.AnyAsync(d => d.Id == employeeDto.DepartmentId);
         if (!departmentExists)
         {
             throw new KeyNotFoundException("Department tapilmadi");
         }
-        existingEmployee.FirstName = employee.FirstName;
-        existingEmployee.LastName = employee.LastName;
-        existingEmployee.Email = employee.Email;
-        existingEmployee.PhoneNumber = employee.PhoneNumber;
-        existingEmployee.HireDate = employee.HireDate;
-        existingEmployee.Salary = employee.Salary;
-        existingEmployee.Status = employee.Status;
-        existingEmployee.DepartmentId = employee.DepartmentId;
-        existingEmployee.UpdatedAt = DateTime.UtcNow;
+        mapper.Map(existingEmployee, employeeDto);
         await context.SaveChangesAsync();
     }
     public async Task DeleteEmployeeAsync(int id)

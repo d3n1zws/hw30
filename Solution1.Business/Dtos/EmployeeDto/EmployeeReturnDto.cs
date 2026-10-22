@@ -1,4 +1,5 @@
-﻿using Solution1.Entity.Entities;
+﻿using Solution1.Business.Dtos.DepartmentDto;
+using Solution1.Entity.Entities;
 using Solution1.Entity.Enums;
 
 namespace Solution1.Business.Dtos.EmployeeDto;
@@ -16,5 +17,5 @@ public record EmployeeReturnDto
     public decimal Salary { get; set; }
     public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
     public int DepartmentId { get; set; }
-    public Department Department { get; set; } = null!;
+    public DepartmentReturnDto DepartmentDto { get; set; } = null!;
 }
